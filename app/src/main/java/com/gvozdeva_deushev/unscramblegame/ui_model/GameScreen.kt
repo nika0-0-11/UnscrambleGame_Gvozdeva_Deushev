@@ -57,8 +57,12 @@ fun GameScreen(
         )
         GameLayout(
             currentScrambledWord = gameUiState.currentScrambledWord,
-            onUserGuessChanged = { },
-            onKeyboardDone = { }
+            userGuess = gameViewModel.userGuess,
+            onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
+            onKeyboardDone = { gameViewModel.checkUserGuess() },
+            isGuessWrong = gameUiState.isGuessedWordWrong,
+            onSubmitClicked = { gameViewModel.checkUserGuess() },
+            onSkipClicked = { gameViewModel.skipWord() },
         )
     }
 }
@@ -96,8 +100,12 @@ fun GameStatus(
 @Composable
 fun GameLayout(
     currentScrambledWord: String,
+    userGuess: String,
     onUserGuessChanged: (String) -> Unit,
     onKeyboardDone: () -> Unit,
+    isGuessWrong: Boolean,
+    onSubmitClicked: () -> Unit,
+    onSkipClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var userGuess by remember { mutableStateOf("") }
@@ -138,6 +146,7 @@ fun GameLayout(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Введите слово") },
+            isError = isGuessWrong,
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = ImeAction.Done
             ),
@@ -145,8 +154,15 @@ fun GameLayout(
                 onDone = { onKeyboardDone() }
             )
         )
+        if (isGuessWrong) {
+            Text(
+                text = "Неправильно! Попробуйте еще раз.",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
         Button(
-            onClick = { /* TODO */ },
+            onClick = onSubmitClicked,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
@@ -155,7 +171,7 @@ fun GameLayout(
             )
         }
         OutlinedButton(
-            onClick = { /* TODO */},
+            onClick = onSkipClicked,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
